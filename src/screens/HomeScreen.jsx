@@ -17,6 +17,6 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    paddingTop: '40%',
+    paddingTop: '60%',
   },
 });

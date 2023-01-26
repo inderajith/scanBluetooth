@@ -2,6 +2,7 @@ import {Image, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import {Card} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
+import MyText from './MyText';
 
 const HomeCard = props => {
   const {title, image} = props;
@@ -11,7 +12,7 @@ const HomeCard = props => {
       style={{width: '80%', marginVertical: '5%'}}
       onPress={() => navigate('Login', {title})}>
       <Card.Content style={styles.card}>
-        <Text style={styles.title}>{title}</Text>
+        <MyText style={styles.title}>{title}</MyText>
         <Image source={image} resizeMode="contain" style={styles.image} />
       </Card.Content>
     </Card>
