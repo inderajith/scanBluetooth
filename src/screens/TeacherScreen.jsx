@@ -1,4 +1,5 @@
 import {
+  Image,
   NativeAppEventEmitter,
   PermissionsAndroid,
   StyleSheet,
@@ -14,20 +15,45 @@ import Logout from '../components/Logout';
 import BleManager from 'react-native-ble-manager';
 import {NativeModules, NativeEventEmitter} from 'react-native';
 import {check, PERMISSIONS, RESULTS} from 'react-native-permissions';
+import {BleManager as BleManagerPlx} from 'react-native-ble-plx';
 
 const TeacherScreen = () => {
   const {navigate} = useNavigation();
+  // const _BleManager = new BleManagerPlx();
+
+  let localDevices = [
+    {
+      id: '1',
+      name: 'Minato Namikaze',
+      bluetoothId: 'DA:4C:10:DE:17:00',
+    },
+    {
+      id: '2',
+      name: 'Jiraya',
+      bluetoothId: 'NE:8A:30:DE:05:55',
+    },
+    {
+      id: '3',
+      name: 'Shikamaru Nara',
+      bluetoothId: 'RT:2L:45:BM:17:20',
+    },
+  ];
 
   const [intervalId, setIntervalId] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [obj, setObj] = useState({});
+  const [devicesAvailable, setDevicesAvailable] = useState([]);
 
   const handleDevicesList = () => {
     if (!isRunning) {
       const id = setInterval(() => {
-        BleManager.getDiscoveredPeripherals(null).then(peripheralsArray => {
+        BleManager.getDiscoveredPeripherals().then(peripheralsArray => {
           console.log('Discovered peripherals: ' + peripheralsArray);
         });
+        // _BleManager.getDiscoveredPeripherals([]).then(peripheralsArray => {
+        //   console.log('Discovered peripherals: ' + peripheralsArray);
+        // });
       }, 1000);
       setIntervalId(id);
       setIsRunning(true);
@@ -39,32 +65,58 @@ const TeacherScreen = () => {
   };
 
   const checkBluetoothEnabled = () => {
-    BleManager.enableBluetooth()
-      .then(() => {
-        console.log('User granted Bluetooth access');
-
-        startScan();
-      })
-      .catch(error => {
-        console.log('User denied Bluetooth access', error);
-      });
+    setDevicesAvailable([]);
+    startScan();
+    // BleManager.enableBluetooth()
+    //   .then(() => {
+    //     console.log('User granted Bluetooth access');
+    //   })
+    //   .catch(error => {
+    //     console.log('User denied Bluetooth access', error);
+    //   });
   };
 
   const startScan = () => {
-    // Start scanning for devices
-    BleManager.scan([], 3, true).then(ee => {
-      console.log('Scanning...');
-    });
+    // BleManager.scan([], 3, true).then(ee => {
+    //   console.log('Scanning...');
+    // });
     setIsScanning(true);
+    setTimeout(() => {
+      setDevicesAvailable(prev => {
+        return [...prev, localDevices[0]];
+      });
+    }, 1000);
+    setTimeout(() => {
+      setDevicesAvailable(prev => {
+        return [...prev, localDevices[1]];
+      });
+    }, 3000);
+    setTimeout(() => {
+      setDevicesAvailable(prev => {
+        return [...prev, localDevices[2]];
+      });
+    }, 5000);
     handleDevicesList();
   };
 
+  // const startScan = () => {
+  //   console.log('device:------ ');
+  //   _BleManager.startDeviceScan(null, null, (error, device) => {
+  //     console.log('device: ', device);
+  //     if (error) {
+  //       console.log(error);
+  //       return;
+  //     }
+  //     handleDevicesList();
+  //   });
+  // };
+
   const stopScan = () => {
-    // Stop scanning for devices
     BleManager.stopScan().then(() => {
       console.log('Scan stopped');
     });
     setIsScanning(false);
+    // setDevicesAvailable([]);
     handleDevicesList();
   };
 
@@ -83,6 +135,7 @@ const TeacherScreen = () => {
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         console.log('You can use the bluetooth');
         BleManager.start({showAlert: false});
+        checkBluetoothEnabled();
       } else {
         console.log('bluetooth permission denied');
       }
@@ -110,7 +163,7 @@ const TeacherScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Logout />
+      <Logout cb={() => setDevicesAvailable([])} />
       <Card onPress={() => navigate('AttendanceDatesList', {user: 'teacher'})}>
         <Card.Content style={styles.card}>
           <MyText>View Past Attendance</MyText>
@@ -127,7 +180,7 @@ const TeacherScreen = () => {
           if (isScanning) {
             stopScan();
           } else {
-            checkBluetoothEnabled();
+            requestBluetoothPermission();
           }
         }}
         style={[
@@ -143,6 +196,37 @@ const TeacherScreen = () => {
           </MyText>
           <ActivityIndicator color="#3399ff" size="small" />
         </View>
+      )}
+      {devicesAvailable.map(item => {
+        return (
+          <Card
+            key={item.id}
+            style={{marginVertical: 8, backgroundColor: 'white'}}>
+            <Card.Content>
+              <MyText style={{fontWeight: 'bold'}}>{item?.name}</MyText>
+              <MyText style={{color: '#ababab', fontSize: 14}}>
+                {item?.bluetoothId}
+              </MyText>
+            </Card.Content>
+          </Card>
+        );
+      })}
+      {devicesAvailable?.length === 0 && (
+        <Card
+          style={{
+            backgroundColor: 'white',
+            width: '90%',
+            alignSelf: 'center',
+            marginTop: 50,
+          }}>
+          <Card.Content>
+            <Image
+              source={require('../images/nodata.png')}
+              resizeMode="contain"
+              style={{width: 300, height: 300}}
+            />
+          </Card.Content>
+        </Card>
       )}
     </View>
   );

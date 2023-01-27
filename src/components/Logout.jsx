@@ -3,7 +3,7 @@ import React from 'react';
 import {FAB} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
 
-const Logout = () => {
+const Logout = props => {
   const {navigate} = useNavigation();
 
   return (
@@ -19,7 +19,10 @@ const Logout = () => {
           },
           {
             text: 'Yes',
-            onPress: () => navigate('Home'),
+            onPress: () => {
+              props.cb();
+              navigate('Home');
+            },
           },
         ])
       }
